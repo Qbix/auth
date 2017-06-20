@@ -115,7 +115,7 @@ Each device should store a list of accounts where the user has published identit
 
 ## Compromise
 
-If one device is compromised (e.g. stolen), the others can be used by the user to log into their accounts (this should be easy on sites which require two-factor authentication) and repudiate the keys stored on the compromised device.
+If one device is compromised (e.g. stolen), the others can be used by the user to log into their accounts and repudiate the keys stored on the compromised device. Along the lines of [NIST recommendations](https://www.nist.gov/itl/tig/back-basics-multi-factor-authentication), it is strongly recommended that the user maintain a way to log into the sites which is not dependent on having the device. This can be two-factor authentication using a password-protected authenticator app, or using a different device. For sites that do not support this protocol, it is usually a password or magic link sent to an email. However, these may be compromised if the device is unlocked and already has access to email and autofills passwords. In any case, the user simply has to be able to still log into their accounts after a device is compromised.
 
 In each identity claim, the user may list one or more additional public keys for identity conflict resolution. If listed, the user must sign the identity claim with the majority of those public keys as well. This way, if one device is stolen, they can update their identity claims on all their other accounts by signing those requests with a majority of other devices and computers (servers, etc.) used for signing the identity claims.
 
