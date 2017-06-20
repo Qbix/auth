@@ -73,6 +73,8 @@ Identity claims, if they are modified, can only append new information. Modifica
 
 By hosting the identity claim at a given url, the site is understood to "endorse" the claim. *Even sites do not support this protocol* can be used in this manner. Many well-known social networking site, such as `facebook.com` or `plus.google.com`, has certain urls where arbitrary content can only be submitted by the authorized user of the site. An example is the user's "about" page, but not their "timeline" page, since comments on posts can be a way for other users to contribute arbitrary text to the page.
 
+Identity claims alone can already be used to show that the same entity who controls account X1 at site Y1 also controls account X2 at site Y2, because they include the same public keys (and have been signed with the same corresponding private keys). When such an entity [authenticates](#authentication) with your site, they can optionally reference URLs of various identity claims signed with those keys.
+
 ## Discovery
 
 A particular person (or other entity) can post identity claims on various accounts at various sites. Each such claim may use the same public-private key pair, or a different one (see [authentication](#authentication)).
@@ -90,6 +92,12 @@ Normally, phone numbers have 15 digits or less, with US phone numbers typically 
 ## Authentication
 
 Users store private keys in apps running on their private devices. The signed [identity claim](#identity) they post on a particular website (whether it is aware of this protocol or not) contains a list of apps (on various platforms) that this user has installed which can be used to verify their identity. Your website can then redirect to this app with a challenge-response to authenticate the user with either the [secured oAuth 2 protocol](https://sakurity.com/oauth) or [the securelogin protocol](https://github.com/sakurity/securelogin).
+
+Authentication of a session should be done only in the context of end-to-end encryption. Then, the session id cookie becomes a bearer token between the user agent and the web server, which is sent with every request. If end-to-end encryption is not possible, the bearer token must be accompanied by a timestamp and a digital signature computed from the request body (which includes the session id and timestamp), using the user's private key that they authenticated with.
+
+During authentication or afterwards, the user may reference certain URLs of identity claims, to prove their control of certain accounts on various sites. The relying site may verify these claims server-to-server for public identities, or using [postMessage](#authentication-with-postmessage) for private identities.
+
+## Authentication with postMessage
 
 Sites which implement the optional [postMessage](https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage) extension to the Qbix auth protocol allow completely private identity claims. When using a standards-compliant user-agent such as a browser or a native mobile app, a consumer website (relying party) loads an iframe from a certain social networking site (identity provider) and requests information. The identity provider loads a document in the iframe, which is able to communicate with the relying party via postMessage. The Javascript in this document is able to verify that the current user is already logged in (authenticated) with the identity provider, and also verify the domain of the relying party. It can then provide information to the relying party, if the current user has authorized it.
 
