@@ -63,11 +63,11 @@ At its core, a person posts identity claims on various accounts signed with thei
 
 An identity claim can be hosted by any site at a url. It consists of text which contains
 * the public key of a [private-public key pair](https://en.wikipedia.org/wiki/Public-key_cryptography)
-* a timestamp or something similar
+* a timestamp
 * which apps to use for authentication (optional)
 * additional public keys for [identity conflict resolution](#compromise) (optional)
 * any extra information (optional)
-* and a digital signature generated with the corresponding private key
+* and a digital signature generated with the corresponding private keys
 
 Identity claims, if they are modified, can only append new information. Modifications might include adding new private keys or repudiating old keys, similar to the [keybase model](https://keybase.io/blog/keybase-new-key-model). Each modification must be signed with a majority of the previously listed public keys, to deal with [compromised identities](#compromise).
 
