@@ -35,6 +35,8 @@ Some sites use [magic links](https://www.sitepoint.com/lets-kill-the-password-ma
 
 Another major problem is security. 
 
+Magic links, including two-factor authentication links, sent to mobile phone numbers can be intercepted by social engineeering of [company sales reps](http://www.eweek.com/security/nist-says-sms-based-two-factor-authentication-isn-t-secure) or [the user themselves](http://www.firstpost.com/business/password-recovery-scam-hackers-stealing-gmail-yahoo-mail-accounts-2299854.html).
+
 [Even large sites](https://www.wired.com/2012/08/apple-amazon-mat-honan-hacking/) can have policies that allow the "change password" feature to be abused. At the very least, if your provider supports +extensions, try to have a different hard-to-guess email+extension@provider.com for each service you log into.
 
 Some sites store passwords in plain text. Sometimes you can tell when their "forgot password" link emails you your actual password. [This leads to epic breaches of millions of passwords](https://arstechnica.com/security/2016/09/plaintext-passwords-and-wealth-of-other-data-for-6-6-million-people-go-public/), and since passwords are re-used, you can bet they're tried on your other accounts.
