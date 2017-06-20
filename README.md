@@ -2,7 +2,7 @@
 
 An authentication protocol that's secure, private and compatible with nearly everything out there.
 
-[Here is the spec](../blob/master/SPEC.md)
+You can [read the overview](#overview) and [implement the spec](#specification).
 
 # What does it do?
 
@@ -13,11 +13,11 @@ In a nutshell, it helps a user...
 * share identities with friends in their private address books
 
 Optional [social](https://github.com/Qbix/auth) extensions to this protocol improve:
-* ONBOARDING: get an instant personalized social experience on your site before they even authenticate
-* ENGAGEMENT: discover all their friends already on your site, and the content they created
-* VIRALITY: invite friends to join their activity on your site in one click
-* RETENTION: receive notifications from your site on a device of their choice
-* SOCIAL: get notified when people in their private address book join
+* [ONBOARDING](#onboarding): get an instant personalized social experience on your site before they even authenticate
+* [ENGAGEMENT](#engagement): discover all their friends already on your site, and the content they created
+* [VIRALITY](#virality): invite friends to join their activity on your site in one click
+* [RETENTION](#retention): receive notifications from your site on a device of their choice
+* [SOCIAL](#social): get notified when people in their private address book join
 
 # Why is it needed?
 
@@ -51,3 +51,30 @@ Also, because of its loose spec, oAuth is vulnerable to cross-site request forge
 
 The web was designed to be decentralized. Today people carry mobile phones in their pocket, with great security and privacy features built in. But they still rely on huge, centralized server farms to manage all their authentication. They trust their identity and their data in the hands of large corporations and remote services ["in the cloud"](http://ascii.textfiles.com/archives/1717). What happens to all of it if those services are discountinued tomorrow? What if your account is shut down tomorrow due to a misunderstanding? If your ability to use all your accounts relies on your relationship with one particular organization, they have a lot of power in that relationship. Why give your personal power away?
 
+# Overview
+
+This section is non-normative. It's a high-level description of the various parts of the protocol, and the reasons for them.
+
+### Identity
+
+An identity claim can be hosted by an site at a url.
+
+Identity can be claimed by posting some text at a url where only an authorized user 
+
+### Authentication
+
+Using a key to answer a challenge response
+
+## Onboarding
+
+## Engagement
+
+## Virality
+
+## Retention
+
+## Social
+
+# Specification
+
+## Definitions
