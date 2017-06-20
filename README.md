@@ -111,7 +111,7 @@ A user may securely authenticate sessions on other computers by any method which
 
 *Private keys should never leave any device*. If the user wishes to use their identity on one device to bootstrap their identity on another device, entirely new private keys must be generated and these should be added to all the identity claims on all the relevant accounts of the user alongside the other keys.
 
-Each device should store a list of accounts where the user has published identity claims, and this list should be updated via pub-sub as in the [discovery section](discovery). This way, any device can be used to provision any new device. You can also provision other types of computers. It's recommended for users to maintain keys on more than one device, to deal with lost or stolen devices.
+Each device should store a list of accounts where the user has published identity claims, and this list should be updated via pub-sub as in the [discovery section](#discovery). This way, any device can be used to provision any new device. You can also provision other types of computers. It's recommended for users to maintain keys on more than one device, to deal with lost or stolen devices.
 
 ## Compromise
 
