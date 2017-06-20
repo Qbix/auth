@@ -31,6 +31,8 @@ Some use [passwords](https://arstechnica.com/business/2012/03/passphrases-only-m
 
 Some sites use [magic links](https://www.sitepoint.com/lets-kill-the-password-magic-login-links-to-the-rescue/) and use email and sms to recover passwords. A typical sign-up process involves providing an email address, checking for a welcome email, and clicking the verification link. Magic links require this same process to be repeated for every login. To add to this inconvenience, if the user's email ever changes, they have to update all their accounts.
 
+Many apps upload their users' entire address book to the server, to find out if any of their contacts already use the service. While this is convenient, it runs many risks of compromising the privacy not just of users but of their contacts. Even large, well-known apps have been known to [send this information unencrypted](https://www.theverge.com/2012/2/8/2785217/path-ios-address-book-upload-ceo-apology), and in any case, the end result involves many companies storing [personally identifiable information](https://en.wikipedia.org/wiki/Personally_identifiable_information), which can be [breached](https://www.nytimes.com/2016/12/14/technology/yahoo-hack.html?_r=0) and [leaked](https://www.wired.com/2015/08/happened-hackers-posted-stolen-ashley-madison-data/) online for all to see.
+
 ## Security
 
 Another major problem is security. 
@@ -55,17 +57,65 @@ The web was designed to be decentralized. Today people carry mobile phones in th
 
 This section is non-normative. It's a high-level description of the various parts of the protocol, and the reasons for them.
 
-### Identity
+At its core, a person posts identity claims on various accounts signed with their public keys. They then store the corresponding private keys using apps on their personal devices, inside the [secure](https://www.apple.com/business/docs/iOS_Security_Guide.pdf) [zone](https://en.wikipedia.org/wiki/ARM_architecture#TrustZone) of their trusted devices. Sites initiate UX flows using these apps to authenticate using [challenge-response](https://en.wikipedia.org/wiki/Challenge%E2%80%93response_authentication). Optional extensions allow the user to authenticate in other ways, issue identity and role certificates to contacts, etc.
 
-An identity claim can be hosted by an site at a url.
+## Identity
 
-Identity can be claimed by posting some text at a url where only an authorized user 
+An identity claim can be hosted by any site at a url. It consists of text which contains
+* the public key of a of a [private-public key pair](https://en.wikipedia.org/wiki/Public-key_cryptography)
+* a timestamp or something similar
+* which apps to use for authentication (optional)
+* additional public keys for [identity conflict resolution](#compromise) (optional)
+* any extra information (optional)
+* and a digital signature generated with the corresponding private key
 
-### Authentication
+Identity claims, if they are modified, can only append new information. Modifications might include adding new private keys or repudiating old keys, similar to the [keybase model](https://keybase.io/blog/keybase-new-key-model). Each modification must be signed with a majority of the previously listed public keys, to deal with [compromised identities](#compromise).
 
-Using a key to answer a challenge response
+By hosting the identity claim at a given url, the site is understood to "endorse" the claim. *Even sites do not support this protocol* can be used in this manner. Many well-known social networking site, such as `facebook.com` or `plus.google.com`, has certain urls where arbitrary content can only be submitted by the authorized user of the site. An example is the user's "about" page, but not their "timeline" page, since comments on posts can be a way for other users to contribute arbitrary text to the page.
+
+## Discovery
+
+A particular person (or other entity) can post identity claims on various accounts at various sites. Each such claim may use the same public-private key pair, or a different one (see [authentication](#authentication)).
+
+Identities may be public or private. If an identity claim is posted at a publicly accessible URL, it can be linked to from many places (such as articles the user writes, their public profile, or the user's [WebID url](https://github.com/solid/solid-spec#identity)). Such an identity claim can in principle be discovered and verified by anyone.
+
+A certain level of privacy can be obtained if the identity claim is hosted at one or more obscure URLs, derived from a secret key [previously agreed upon](https://en.wikipedia.org/wiki/Out-of-band_agreement) by various participants. These URLs may also be used for [publishing and subscribing](https://en.wikipedia.org/wiki/Publish%E2%80%93subscribe_pattern) to messages, including identity claims, between various participants. The messages can be encrypted for their intended recipients. They can be hosted by [hubs](https://en.wikipedia.org/wiki/Hub_(network_science_concept)) or embedded in [blockchains](https://en.wikipedia.org/wiki/Blockchain) .
+
+Discovery of private identities must be bootstrapped from address books, otherwise it's (turtles all the way down)[https://en.wikipedia.org/wiki/Turtles_all_the_way_down]. People maintain address books on their devices, with varying degrees of privacy depending on how this information is stored and synced. They can use these to connect with their personal contacts across different sites, in a *private and secure* manner. Here is how it works:
+
+If person A has person B's email address, phone number, or other identifier in their address book, and vice versa, then they can derive the same secret key and discover each other on a particular site in this way. Since a person knows their own phone number, they can then compute, for example, `sha256(siteUrl + number1 + number2)` where `(number1, number2) = sort(numberA, numberB)`.
+
+Normally, phone numbers have 15 digits or less, with US phone numbers typically being around 10 digits – a maximum of 10 billion possibilities. Hashing them on their own is useless, since the hashes can easily be reversed by the site on which they are stored. Using this scheme, however, A and B can find each other on a site, without revealing their phone numbers or other identifiers to the site.
+
+## Authentication
+
+Users store private keys in apps running on their private devices. The signed [identity claim](#identity) they post on a particular website (whether it is aware of this protocol or not) contains a list of apps (on various platforms) that this user has installed which can be used to verify their identity. Your website can then redirect to this app with a challenge-response to authenticate the user [using the securelogin protocol](https://github.com/sakurity/securelogin).
+
+Sites which implement the optional [postMessage](https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage) extension to the Qbix auth protocol allow completely private identity claims. When using a standards-compliant user-agent such as a browser or a native mobile app, a consumer website (relying party) loads an iframe from a certain social networking site (identity provider) and requests information. The identity provider loads a document in the iframe, which is able to communicate with the relying party via postMessage. The Javascript in this document is able to verify that the current user is already logged in (authenticated) with the identity provider, and also verify the domain of the relying party. It can then provide information to the relying party, if the current user has authorized it.
+
+In fact, the identity provider *does not need to be a server*. A native app using WebViews, or even a [web app using Service Workers](https://www.youtube.com/watch?v=4uQMl7mFB6g), can [intercept HTTP requests](http://robnapier.net/offline-uiwebview-nsurlprotocol) and load their own HTML and Javascript for urls that begin with a certain prefix such as `https://myapp-cache/` . This Javascript can communicate with the native app (e.g. via a grandfather iframe) to fetch verify the logged-in user's information, and the sites they authorized to receive this information. They can then use postMessage the same as above, all the while keeping the identity provider completely client-based.
+
+## Authentication across computers
+
+A user may securely authenticate sessions on other computers by any method which does not involve passwords. For example, a public computer may display a QR code which the user can scan with one of the authentication apps on their phone. The app then sends a request to the URL specified in the QR code over the internet, or if there is no wireless internet connection, it may display a code to the user to type, or communicate with the other device via bluetooth. Other approaches involve NFC, and so on.
+
+## Provisioning
+
+*Private keys should never leave any device*. If the user wishes to use their identity on one device to bootstrap their identity on another device, entirely new private keys must be generated and these should be posted on all the relevant accounts of the user alongside the other keys.
+
+Each device should store a list of accounts where the user has published identity claims, and this list should be updated via pub-sub as in the [discovery section](discovery). This way, any device can be used to provision any new device. You can also provision other types of computers. It's recommended for users to maintain keys on more than one device, to deal with lost or stolen devices.
+
+## Compromise
+
+If one device is compromised (e.g. stolen), the others can be used by the user to log into their accounts (this should be easy on sites which require two-factor authentication) and repudiate the keys stored on the compromised device.
+
+In each identity claim, the user may list one or more additional public keys for identity conflict resolution. If listed, the user must sign the identity claim with the majority of those public keys as well. This way, if one device is stolen, they can update their identity claims on all their other accounts by signing those requests with a majority of other devices and computers (servers, etc.) used for signing the identity claims.
+
+If the user's list of identity claims is up to date on each device, this can be done automatically once the user authenticates with each computer. It's recommended that the user keep some of these computers on separate networks (e.g. servers, devices, etc.) or offline.
 
 ## Onboarding
+
+Sites which implement the optional [postMessage](https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage) extension to this protocol allow the display of personalized information to a logged-in user, without them even needing to authenticate with the site.
 
 ## Engagement
 
@@ -74,6 +124,12 @@ Using a key to answer a challenge response
 ## Retention
 
 ## Social
+
+Users can get notifications delivered to their devices when a contact joins a new site, and publishes their identity claim on it. This identity claim may be encrypted for only certain other users to receive it.
+
+A user's authentication app automatically fetches the identity claims and adds them to the user's address book, thereby creating a social network experience for the user. The user discover new sites that their contacts joined, which may represent various interests that their contacts have, places they visited, and so on.
+
+They can assign various labels to their contacts, and share various content with them on different sites. The labels can act as roles for permissions, and they can send certificates to their contacts (via encrypted pubsub and notifications) allowing them to access content they post on various sites. Or, they may manage roles and permissions on the sites themselves (where the relations are more site-specific).
 
 # Specification
 
