@@ -95,7 +95,7 @@ Users store private keys in apps running on their private devices. The signed [i
 
 Apps that store private keys and handle the challenge-response should have a way to be "locked", and require a passcode or biometric id to be "unlocked". The apps only handle challenge-response when "unlocked". They may be "locked" automatically when the mobile phone or tablet is locked, for example.
 
-Private keys are stored in the [secure](https://www.apple.com/business/docs/iOS_Security_Guide.pdf) [zone](https://en.wikipedia.org/wiki/ARM_architecture#TrustZone) of the user's device, using operating system APIs such as the [MacOS Keychain](https://developer.apple.com/library/content/documentation/Security/Conceptual/keychainServConcepts/01introduction/introduction.html. If a computer supports multiple user accounts, the operating system would manage access to the private keys of the currently logged-in user.
+Private keys are stored in the [secure](https://www.apple.com/business/docs/iOS_Security_Guide.pdf) [zone](https://en.wikipedia.org/wiki/ARM_architecture#TrustZone) of the user's device, using operating system APIs such as the [MacOS Keychain](https://developer.apple.com/library/content/documentation/Security/Conceptual/keychainServConcepts/01introduction/introduction.html). If a computer supports multiple user accounts, the operating system would manage access to the private keys of the currently logged-in user.
 
 Authentication of a session should be done only in the context of end-to-end encryption with a [key exchange algorithm](https://en.wikipedia.org/wiki/Key_exchange). Then, the session id cookie becomes a bearer token between the user agent and the web server, which is sent with every request.
 
