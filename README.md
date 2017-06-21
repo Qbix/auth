@@ -91,21 +91,29 @@ Normally, phone numbers have 15 digits or less, with US phone numbers typically 
 
 ## Authentication
 
-Users store private keys in apps running on their private devices. The signed [identity claim](#identity) they post on a particular website (whether it is aware of this protocol or not) contains a list of apps (on various platforms) that this user has installed which can be used to verify their identity. Your website can then redirect to this app with a challenge-response to authenticate the user with either the [secured oAuth 2 protocol](https://sakurity.com/oauth) or [the securelogin protocol](https://github.com/sakurity/securelogin).
+Users store private keys in apps running on their private devices. The signed [identity claim](#identity) they post on a particular website (whether it is aware of this protocol or not) contains a list of apps (on various platforms) that this user has installed which can be used to verify their identity. These apps are identified by URLs which can resolve either to a server (such as `https://groups.org`) or an app running on a device (such as `groups://`). Your website can then redirect to this app with a challenge-response to authenticate the user with either the [secured oAuth 2 protocol](https://sakurity.com/oauth) or [the securelogin protocol](https://github.com/sakurity/securelogin).
 
-Authentication of a session should be done only in the context of end-to-end encryption. Then, the session id cookie becomes a bearer token between the user agent and the web server, which is sent with every request. If end-to-end encryption is not possible, the bearer token must be accompanied by a timestamp and a digital signature computed from the request body (which includes the session id and timestamp), using the user's private key that they authenticated with. In this case, the site must maintain the latest timestamp sent by the user, to make sure that the timestamps are always monotonically increasing, and reject requests for which this is not the case.
+Apps that store private keys and handle the challenge-response should have a way to be "locked", and require a passcode or biometric id to be "unlocked". The apps only handle challenge-response when "unlocked". They may be "locked" automatically when the mobile phone or tablet is locked, for example.
+
+Private keys are stored in the [secure](https://www.apple.com/business/docs/iOS_Security_Guide.pdf) [zone](https://en.wikipedia.org/wiki/ARM_architecture#TrustZone) of the user's device, using operating system APIs such as the [MacOS Keychain](https://developer.apple.com/library/content/documentation/Security/Conceptual/keychainServConcepts/01introduction/introduction.html. If a computer supports multiple user accounts, the operating system would manage access to the private keys of the currently logged-in user.
+
+Authentication of a session should be done only in the context of end-to-end encryption with a [key exchange algorithm](https://en.wikipedia.org/wiki/Key_exchange). Then, the session id cookie becomes a bearer token between the user agent and the web server, which is sent with every request.
 
 During authentication or afterwards, the user may reference certain URLs of identity claims, to prove their control of certain accounts on various sites. The relying site may verify these claims server-to-server for public identities, or using [postMessage](#authentication-with-postmessage) for private identities.
 
-## Authentication with postMessage
+## Authentication across apps
 
-Sites which implement the optional [postMessage](https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage) extension to the Qbix auth protocol allow completely private identity claims. When using a standards-compliant user-agent such as a browser or a native mobile app, a consumer website (relying party) loads an iframe from a certain social networking site (identity provider) and requests information. The identity provider loads a document in the iframe, which is able to communicate with the relying party via postMessage. The Javascript in this document is able to verify that the current user is already logged in (authenticated) with the identity provider, and also verify the domain of the relying party. It can then provide information to the relying party, if the current user has authorized it.
+Sites which implement this extension to the Qbix auth protocol allow completely private identity claims. When using a standards-compliant user-agent such as a browser or a native mobile app, a consumer website ([relying party](https://en.wikipedia.org/wiki/Relying_party)) loads an iframe from a certain social networking site (identity provider) and requests information. The identity provider loads a document in the iframe, which is able to communicate with the relying party via [postMessage](https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage) . The Javascript in this document is able to verify that the current user is already logged in (authenticated) with the identity provider, and also verify the domain of the relying party. It can then provide information to the relying party, if the current user has authorized it.
 
-In fact, the identity provider *does not need to be a server*. A native app using WebViews, or even a [web app using Service Workers](https://www.youtube.com/watch?v=4uQMl7mFB6g), can [intercept HTTP requests](http://robnapier.net/offline-uiwebview-nsurlprotocol) and load their own HTML and Javascript for urls that begin with a certain prefix such as `https://myapp-cache/` . This Javascript can communicate with the native app (e.g. via a grandfather iframe) to fetch verify the logged-in user's information, and the sites they authorized to receive this information. They can then use postMessage the same as above, all the while keeping the identity provider completely client-based.
+In fact, the identity provider *does not need to be a server*. A native app using WebViews, or even a [web app using Service Workers](https://www.youtube.com/watch?v=4uQMl7mFB6g), can [intercept HTTP requests](http://robnapier.net/offline-uiwebview-nsurlprotocol) and load their own HTML and Javascript for urls that begin with a certain prefix such as `https://groups.intercept/` . This Javascript can communicate with the native app (e.g. via a grandfather iframe) to fetch verify the logged-in user's information, and the sites they authorized to receive this information. They can then use postMessage the same as above, all the while keeping the identity provider completely client-based.
+
+A relying party can authenticate a user using postMessage when it's available. Sometimes, for extra security, it may require using one of the device-based apps listed in the user's identity claim. The latter may be more desirable for banks since it guards against e.g. someone else leveraging an authenticated session in an identity provider that a user left unattended on a public computer.
 
 ## Authentication across computers
 
-A user may securely authenticate sessions on other computers by any method which does not involve passwords. For example, a public computer may display a QR code which the user can scan with one of the authentication apps on their phone. The app then sends a request to the URL specified in the QR code over the internet, or if there is no wireless internet connection, it may display a code to the user to type, or communicate with the other device via bluetooth. Other approaches involve NFC, and so on.
+A user may securely authenticate sessions on other computers by any method which does not involve passwords. For example, a public computer may display a QR code which the user can scan with one of the authentication apps on their device. The code contains a challenge as well as the URL to send the response to. The authentication app then sends a request to the URL specified in the QR code over the internet, or if there is no wireless internet connection, it may display a code to the user to type, or communicate with the other device via bluetooth. Other approaches involve NFC, and so on.
+
+This can be combined with the [Authenication across apps](#authentication-across-apps) extension to have the user sign into their account on `groups.org` (e.g. on a public computer) and then use that authenticated session to authenticate any relying party websites.
 
 ## Provisioning
 
@@ -120,6 +128,14 @@ If one device is compromised (e.g. stolen), the others can be used by the user t
 In each identity claim, the user may list one or more additional public keys for identity conflict resolution. If listed, the user must sign the identity claim with the majority of those public keys as well. This way, if one device is stolen, they can update their identity claims on all their other accounts by signing those requests with a majority of other devices and computers (servers, etc.) used for signing the identity claims.
 
 If the user's list of identity claims is up to date on each device, this can be done automatically once the user authenticates with each computer. It's recommended that the user keep some of these computers on separate networks (e.g. servers, devices, etc.) or offline.
+
+## Private Data
+
+This extension allows the app to send various user data to the relying party, using a symmetric key to either encrypt it or sign it.
+
+An authentication app may be running on a user's device or on a server. A [hybrid cryptosystem](https://en.wikipedia.org/wiki/Hybrid_cryptosystem) is used whereby the relying party generates symmetric keys, encrypts them with the user's public keys, and sends them to the app. The app stores these keys for each relying party, and uses them to sign or encrypt any data sent to the relying party via postMessage or oAuth. This allows the relying party's server, or anyone with the symmetric key, to verify the integrity of the data.
+
+The hybrid cryptosystem allows much faster encryption (symmetric key encryption) to take place, which may make a big difference for authentication apps which run on servers and send out data for millions of users.
 
 ## Onboarding
 
