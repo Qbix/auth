@@ -139,7 +139,7 @@ The hybrid cryptosystem allows much faster encryption (symmetric key encryption)
 
 ## Onboarding
 
-Sites which implement the optional [postMessage](https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage) extension to this protocol allow the display of personalized information to a logged-in user, without them even needing to authenticate with the site.
+Sites which implement the optional [Authentication across apps](#authentication-across-apps) extension to this protocol allow the display of personalized information to a logged-in user, without them even needing to authenticate with the site.
 
 ## Engagement
 
