@@ -62,6 +62,7 @@ At its core, a person posts identity claims on various accounts signed with thei
 ## Identity
 
 An identity claim can be hosted by any site at a url. It consists of text which contains
+* a header and footer which lets people and machines recognize this as an identity claim
 * the public key of a [private-public key pair](https://en.wikipedia.org/wiki/Public-key_cryptography)
 * a timestamp
 * which apps to use for authentication (optional)
